@@ -1,0 +1,163 @@
+:root {
+  --bg: #0b0d10;
+  --card: #15181d;
+  --text: #eef1f5;
+  --muted: #8a93a0;
+  --accent: #6aa9ff;
+  --danger: #ff6a6a;
+  --radius: 22px;
+  --gap: 18px;
+}
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif;
+  overflow: hidden;
+  transition: filter 0.4s;
+}
+
+body.dim { filter: brightness(0.35); }
+
+.grid {
+  height: 100vh;
+  padding: max(var(--gap), env(safe-area-inset-top)) var(--gap) var(--gap);
+  display: grid;
+  gap: var(--gap);
+  grid-template-columns: 1.4fr 1fr;
+  grid-template-rows: 1fr 1fr 1fr;
+}
+
+.card {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 24px 28px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.clock-card {
+  grid-row: 1 / 4;
+  justify-content: center;
+}
+
+h2 {
+  margin: 0 0 12px;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.time {
+  font-size: 150px;
+  font-weight: 200;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.date { font-size: 30px; color: var(--muted); margin-top: 10px; }
+
+.weather { margin-top: 56px; }
+.weather-now { display: flex; align-items: center; gap: 16px; }
+.weather-icon { font-size: 64px; }
+.weather-temp { font-size: 64px; font-weight: 300; }
+
+.forecast { display: flex; gap: 28px; margin-top: 28px; }
+.forecast-day { text-align: center; font-size: 18px; }
+.forecast-day .icon { font-size: 30px; margin: 6px 0; }
+
+.muted { color: var(--muted); font-size: 20px; }
+.error { color: var(--danger); min-height: 1.2em; }
+
+.pomo-time {
+  font-size: 72px;
+  font-weight: 300;
+  font-variant-numeric: tabular-nums;
+  margin: 4px 0 12px;
+}
+
+.row { display: flex; gap: 10px; }
+
+button, input, textarea {
+  font: inherit;
+  color: var(--text);
+  border: none;
+  border-radius: 14px;
+}
+
+button {
+  background: var(--accent);
+  color: #06101e;
+  padding: 12px 20px;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+button.ghost { background: #232830; color: var(--text); }
+
+input, textarea {
+  background: #0f1216;
+  padding: 12px 14px;
+  font-size: 18px;
+  flex: 1;
+  min-width: 0;
+}
+
+textarea { flex: 1; resize: none; width: 100%; }
+
+.todo-list {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+  overflow-y: auto;
+}
+
+.todo-list li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  font-size: 19px;
+  border-bottom: 1px solid #20252c;
+}
+
+.todo-list li.done span { text-decoration: line-through; color: var(--muted); }
+.todo-list li span { flex: 1; }
+.todo-list input[type="checkbox"] { flex: none; width: 24px; height: 24px; }
+.todo-list .del { background: none; color: var(--muted); padding: 4px 8px; }
+
+.toolbar {
+  position: fixed;
+  right: 28px;
+  bottom: 28px;
+  display: flex;
+  gap: 10px;
+}
+
+dialog {
+  background: var(--card);
+  color: var(--text);
+  border: none;
+  border-radius: var(--radius);
+  padding: 28px;
+  width: 420px;
+}
+
+dialog::backdrop { background: rgba(0, 0, 0, 0.6); }
+dialog label { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; color: var(--muted); }
+dialog label.check { flex-direction: row; align-items: center; }
+dialog label.check input { flex: none; width: 22px; height: 22px; }
+
+/* Portrait fallback */
+@media (orientation: portrait) {
+  .grid { grid-template-columns: 1fr; grid-template-rows: 1.3fr 1fr 1fr 1fr; }
+  .clock-card { grid-row: auto; }
+  .time { font-size: 120px; }
+}

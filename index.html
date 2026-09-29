@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Desk">
+  <title>Desk Dock</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="grid">
+    <section class="card clock-card">
+      <div id="time" class="time">--:--</div>
+      <div id="date" class="date"></div>
+      <div class="weather">
+        <div class="weather-now">
+          <span id="weather-icon" class="weather-icon">·</span>
+          <span id="weather-temp" class="weather-temp">--°</span>
+        </div>
+        <div id="weather-desc" class="muted">Loading weather…</div>
+        <div id="forecast" class="forecast"></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Focus</h2>
+      <div id="pomo-mode" class="muted">Focus</div>
+      <div id="pomo-time" class="pomo-time">25:00</div>
+      <div class="row">
+        <button id="pomo-start">Start</button>
+        <button id="pomo-reset" class="ghost">Reset</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>To-do</h2>
+      <form id="todo-form" class="row">
+        <input id="todo-input" placeholder="Add a task…" autocomplete="off">
+        <button type="submit">Add</button>
+      </form>
+      <ul id="todo-list" class="todo-list"></ul>
+    </section>
+
+    <section class="card">
+      <h2>Notes</h2>
+      <textarea id="notes" placeholder="Quick notes…"></textarea>
+    </section>
+  </main>
+
+  <div class="toolbar">
+    <button id="dim-btn" class="ghost" aria-label="Dim screen">◐</button>
+    <button id="settings-btn" class="ghost" aria-label="Settings">⚙︎</button>
+  </div>
+
+  <dialog id="settings">
+    <form method="dialog" id="settings-form">
+      <h2>Settings</h2>
+      <label>City <input id="city-input" placeholder="e.g. Paris"></label>
+      <label class="check"><input id="h24-input" type="checkbox"> 24-hour clock</label>
+      <div id="settings-error" class="error"></div>
+      <div class="row">
+        <button id="settings-save" value="save">Save</button>
+        <button value="cancel" class="ghost">Cancel</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="app.js"></script>
+</body>
+</html>
