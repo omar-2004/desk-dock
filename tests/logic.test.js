@@ -1,8 +1,9 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
-  aqiLabel, dateKey, daysLabel, daysUntil, describeWeather, formatSeconds,
-  hourlyFrom, isNightTime, lastNDays, quoteOfDay, streak,
+  aqiLabel, clamp, dateKey, describeWeather, formatSeconds, hourlyFrom, isNightTime,
+  isValidLayout, lastNDays, nextStatus, pickOfWeek, quoteOfDay, remainingSeconds,
+  resizeColumns, streak,
 } from "../js/logic.js";
 import { validateBackup } from "../js/storage.js";
 
@@ -11,25 +12,23 @@ const at = (y, m, d, h = 12, min = 0) => new Date(y, m - 1, d, h, min);
 test("formatSeconds pads minutes and seconds", () => {
   assert.equal(formatSeconds(25 * 60), "25:00");
   assert.equal(formatSeconds(65), "01:05");
+  assert.equal(formatSeconds(90 * 60), "90:00");
+});
+
+test("remainingSeconds rounds up and never goes negative", () => {
+  assert.equal(remainingSeconds(10_500, 10_000), 1);
+  assert.equal(remainingSeconds(70_000, 10_000), 60);
+  assert.equal(remainingSeconds(5_000, 10_000), 0);
+});
+
+test("clamp keeps value in range", () => {
+  assert.equal(clamp(3, 5, 10), 5);
+  assert.equal(clamp(12, 5, 10), 10);
+  assert.equal(clamp(7, 5, 10), 7);
 });
 
 test("dateKey uses local calendar date", () => {
   assert.equal(dateKey(at(2026, 1, 5, 23, 59)), "2026-01-05");
-});
-
-test("daysUntil counts whole days, ignoring time of day", () => {
-  const today = at(2026, 9, 29, 23, 0);
-  assert.equal(daysUntil("2026-09-29", today), 0);
-  assert.equal(daysUntil("2026-10-01", today), 2);
-  assert.equal(daysUntil("2026-09-26", today), -3);
-});
-
-test("daysLabel reads naturally", () => {
-  assert.equal(daysLabel(0), "Today");
-  assert.equal(daysLabel(1), "Tomorrow");
-  assert.equal(daysLabel(-1), "Yesterday");
-  assert.equal(daysLabel(12), "12 days");
-  assert.equal(daysLabel(-4), "4 days ago");
 });
 
 test("lastNDays returns oldest to today across month boundary", () => {
@@ -37,8 +36,7 @@ test("lastNDays returns oldest to today across month boundary", () => {
 });
 
 test("streak counts consecutive days ending today", () => {
-  const days = ["2026-09-27", "2026-09-28", "2026-09-29"];
-  assert.equal(streak(days, at(2026, 9, 29)), 3);
+  assert.equal(streak(["2026-09-27", "2026-09-28", "2026-09-29"], at(2026, 9, 29)), 3);
 });
 
 test("streak still counts from yesterday when today not done yet", () => {
@@ -81,6 +79,21 @@ test("quoteOfDay is stable within a day and changes the next day", () => {
   assert.notEqual(quoteOfDay(quotes, at(2026, 9, 29)), quoteOfDay(quotes, at(2026, 9, 30)));
 });
 
+test("pickOfWeek is stable for 7 days then moves on", () => {
+  const items = ["a", "b", "c", "d"];
+  const first = pickOfWeek(items, at(2026, 10, 1)); // Thursday
+  for (let d = 1; d <= 7; d += 1) assert.equal(pickOfWeek(items, at(2026, 10, d)), first);
+  assert.notEqual(pickOfWeek(items, at(2026, 10, 8)), first);
+  assert.equal(pickOfWeek([], at(2026, 10, 1)), null);
+});
+
+test("nextStatus cycles todo → reading → done → todo", () => {
+  assert.equal(nextStatus("todo"), "reading");
+  assert.equal(nextStatus("reading"), "done");
+  assert.equal(nextStatus("done"), "todo");
+  assert.equal(nextStatus("weird"), "todo");
+});
+
 test("hourlyFrom returns the hours after the current one", () => {
   const hourly = {
     time: ["2026-09-29T20:00", "2026-09-29T21:00", "2026-09-29T22:00", "2026-09-29T23:00"],
@@ -95,13 +108,32 @@ test("hourlyFrom returns the hours after the current one", () => {
   assert.deepEqual(hourlyFrom(hourly, "2026-09-30T08:00", 2), []);
 });
 
+test("resizeColumns moves one border and keeps the total", () => {
+  assert.deepEqual(resizeColumns([34, 33, 33], 0, 6, 20), [40, 27, 33]);
+  assert.deepEqual(resizeColumns([34, 33, 33], 1, -3, 20), [34, 30, 36]);
+});
+
+test("resizeColumns stops at the minimum width", () => {
+  assert.deepEqual(resizeColumns([34, 33, 33], 0, 50, 20), [47, 20, 33]);
+  assert.deepEqual(resizeColumns([34, 33, 33], 0, -50, 20), [20, 47, 33]);
+});
+
+test("isValidLayout rejects bad saved layouts", () => {
+  assert.equal(isValidLayout([34, 33, 33], 3, 20), true);
+  assert.equal(isValidLayout([50, 50], 3, 20), false);
+  assert.equal(isValidLayout([10, 45, 45], 3, 20), false);
+  assert.equal(isValidLayout([40, 40, 40], 3, 20), false);
+  assert.equal(isValidLayout("nope", 3, 20), false);
+});
+
 test("validateBackup accepts a real export", () => {
   const data = {
     "desk.settings": { city: "Paris" },
     "desk.todos": [],
     "desk.notes": "hi",
     "desk.habits": [],
-    "desk.countdowns": [],
+    "desk.books": [],
+    "desk.layout": [34, 33, 33],
     "desk.tab": "todo",
   };
   assert.deepEqual(validateBackup(data), { ok: true });

@@ -5,8 +5,10 @@ export const KEYS = {
   settings: "desk.settings",
   todos: "desk.todos",
   notes: "desk.notes",
-  countdowns: "desk.countdowns",
+  countdowns: "desk.countdowns", // legacy (v2), kept so old backups still import
   habits: "desk.habits",
+  books: "desk.books",
+  layout: "desk.layout",
   tab: "desk.tab",
 };
 
@@ -19,6 +21,8 @@ const BACKUP_SCHEMA = {
   [KEYS.notes]: isString,
   [KEYS.countdowns]: Array.isArray,
   [KEYS.habits]: Array.isArray,
+  [KEYS.books]: Array.isArray,
+  [KEYS.layout]: Array.isArray,
   [KEYS.tab]: isString,
 };
 

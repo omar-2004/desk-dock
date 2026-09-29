@@ -10,24 +10,18 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <main class="grid">
-    <!-- Column 1: time -->
-    <section class="card col-time">
-      <div>
-        <div id="time" class="time">--:--</div>
-        <div id="date" class="date"></div>
-        <div id="world" class="world"></div>
-      </div>
-      <blockquote id="quote" class="quote"></blockquote>
-    </section>
+  <main id="grid" class="grid">
+    <!-- Section 1: time, date, weather -->
+    <section class="card col">
+      <div id="time" class="time">--:--</div>
+      <div id="date" class="date"></div>
 
-    <!-- Column 2: weather -->
-    <section class="card col-weather">
       <div class="weather-now">
         <span id="w-icon" class="w-icon">·</span>
-        <div>
+        <div class="grow">
           <div id="w-temp" class="w-temp">--°</div>
           <div id="w-desc" class="muted">Loading weather…</div>
+          <div id="w-note" class="note"></div>
         </div>
       </div>
       <div id="w-details" class="w-details"></div>
@@ -37,57 +31,85 @@
       <div id="w-daily" class="w-daily"></div>
     </section>
 
-    <!-- Column 3: productivity -->
-    <div class="col-stack">
-      <section class="card focus-card">
-        <div>
-          <h2>Timer · <span id="pomo-mode">Focus</span></h2>
-          <div id="pomo-time" class="pomo-time">25:00</div>
-        </div>
-        <div class="row">
-          <button id="pomo-start" type="button">Start</button>
-          <button id="pomo-reset" type="button" class="ghost">Reset</button>
-        </div>
-      </section>
+    <div class="divider" data-index="0" role="separator" aria-label="Drag to resize"><span></span></div>
 
-      <section class="card tabs-card">
-        <nav id="tabs" class="tabs">
-          <button type="button" data-tab="todo">To-do</button>
-          <button type="button" data-tab="habits">Habits</button>
-          <button type="button" data-tab="countdowns">Countdowns</button>
-          <button type="button" data-tab="notes">Notes</button>
-        </nav>
+    <!-- Section 2: quote + books -->
+    <section class="card col">
+      <h2>Quote of the day</h2>
+      <blockquote id="quote" class="quote"></blockquote>
 
-        <div class="panel" data-panel="todo">
-          <form id="todo-form" class="row">
-            <input id="todo-input" placeholder="Add a task…" autocomplete="off" maxlength="120">
-            <button type="submit">Add</button>
-          </form>
-          <ul id="todo-list" class="list"></ul>
-        </div>
+      <h2 id="book-heading">Book of the week</h2>
+      <div id="book-featured" class="book-featured"></div>
 
-        <div class="panel" data-panel="habits" hidden>
-          <form id="habit-form" class="row">
-            <input id="habit-input" placeholder="New habit…" autocomplete="off" maxlength="60">
-            <button type="submit">Add</button>
-          </form>
-          <ul id="habit-list" class="list"></ul>
-        </div>
+      <h2>Reading list</h2>
+      <form id="book-form" class="row">
+        <input id="book-input" placeholder="Add a book title…" autocomplete="off" maxlength="120">
+        <button id="book-add" type="submit">Add</button>
+      </form>
+      <div id="book-error" class="error"></div>
+      <ul id="book-list" class="list books"></ul>
+    </section>
 
-        <div class="panel" data-panel="countdowns" hidden>
-          <form id="cd-form" class="row">
-            <input id="cd-name" placeholder="Event…" autocomplete="off" maxlength="60">
-            <input id="cd-date" type="date" class="date-input">
-            <button type="submit">Add</button>
-          </form>
-          <ul id="cd-list" class="list"></ul>
-        </div>
+    <div class="divider" data-index="1" role="separator" aria-label="Drag to resize"><span></span></div>
 
-        <div class="panel" data-panel="notes" hidden>
-          <textarea id="notes" placeholder="Quick notes…"></textarea>
+    <!-- Section 3: timer + to-do / habits / notes -->
+    <section class="card col">
+      <div class="focus-head">
+        <h2>Timer · <span id="pomo-mode">Focus</span></h2>
+        <div class="toolbar">
+          <button id="night-btn" type="button" class="icon-btn" aria-label="Night mode">☾</button>
+          <button id="settings-btn" type="button" class="icon-btn" aria-label="Settings">⚙︎</button>
         </div>
-      </section>
-    </div>
+      </div>
+      <div id="pomo-time" class="pomo-time">25:00</div>
+      <div class="progress"><div id="pomo-bar"></div></div>
+      <div class="steppers">
+        <div class="stepper">
+          <span>Focus</span>
+          <button id="focus-dec" type="button" class="step">−</button>
+          <b id="focus-min">25</b>
+          <button id="focus-inc" type="button" class="step">+</button>
+          <span>min</span>
+        </div>
+        <div class="stepper">
+          <span>Break</span>
+          <button id="break-dec" type="button" class="step">−</button>
+          <b id="break-min">5</b>
+          <button id="break-inc" type="button" class="step">+</button>
+          <span>min</span>
+        </div>
+      </div>
+      <div class="row timer-actions">
+        <button id="pomo-start" type="button">Start</button>
+        <button id="pomo-reset" type="button" class="ghost">Reset</button>
+      </div>
+
+      <nav id="tabs" class="tabs">
+        <button type="button" data-tab="todo">To-do</button>
+        <button type="button" data-tab="habits">Habits</button>
+        <button type="button" data-tab="notes">Notes</button>
+      </nav>
+
+      <div class="panel" data-panel="todo">
+        <form id="todo-form" class="row">
+          <input id="todo-input" placeholder="Add a task…" autocomplete="off" maxlength="120">
+          <button type="submit">Add</button>
+        </form>
+        <ul id="todo-list" class="list"></ul>
+      </div>
+
+      <div class="panel" data-panel="habits" hidden>
+        <form id="habit-form" class="row">
+          <input id="habit-input" placeholder="New habit…" autocomplete="off" maxlength="60">
+          <button type="submit">Add</button>
+        </form>
+        <ul id="habit-list" class="list"></ul>
+      </div>
+
+      <div class="panel" data-panel="notes" hidden>
+        <textarea id="notes" placeholder="Quick notes…"></textarea>
+      </div>
+    </section>
   </main>
 
   <!-- Night mode overlay: tap to wake -->
@@ -96,21 +118,11 @@
     <div id="night-date" class="night-date"></div>
   </div>
 
-  <div class="toolbar">
-    <button id="night-btn" type="button" class="ghost" aria-label="Night mode">☾</button>
-    <button id="settings-btn" type="button" class="ghost" aria-label="Settings">⚙︎</button>
-  </div>
-
   <dialog id="settings">
     <form id="settings-form">
       <h2>Settings</h2>
-      <label class="field">Weather city <input id="s-city" autocomplete="off"></label>
-      <div class="field">
-        <span>World clocks (up to 3 cities)</span>
-        <input id="s-world-0" autocomplete="off">
-        <input id="s-world-1" autocomplete="off">
-        <input id="s-world-2" autocomplete="off">
-      </div>
+      <label class="check"><input id="s-use-location" type="checkbox"> Use my location for weather</label>
+      <label class="field">City (when location is off) <input id="s-city" autocomplete="off"></label>
       <label class="check"><input id="s-h24" type="checkbox"> 24-hour clock</label>
       <label class="check"><input id="s-night-auto" type="checkbox"> Auto night mode</label>
       <div class="row">
@@ -126,6 +138,7 @@
           </label>
         </div>
       </div>
+      <p class="hint">Tip: drag the handles between sections to resize them. Double-tap a handle to reset.</p>
       <div id="s-error" class="error"></div>
       <div class="row">
         <button type="submit" id="s-save">Save</button>

@@ -6,7 +6,7 @@ const FORECAST_URL = "https://api.open-meteo.com/v1/forecast";
 const AQI_URL = "https://air-quality-api.open-meteo.com/v1/air-quality";
 const REFRESH_MS = 15 * 60 * 1000;
 const HOURS_SHOWN = 12;
-const DAYS_SHOWN = 5;
+const DAYS_SHOWN = 4;
 
 async function getJson(url) {
   const res = await fetch(url);
@@ -41,7 +41,7 @@ function renderNow(current, city) {
   const [icon, label] = describeWeather(current.weather_code);
   $("w-icon").textContent = icon;
   $("w-temp").textContent = `${Math.round(current.temperature_2m)}°`;
-  $("w-desc").textContent = `${label} · ${city}`;
+  $("w-desc").textContent = `${label} · ${getSettings().useLocation ? "📍 " : ""}${city}`;
 }
 
 function renderDetails(current, daily, aqi) {

@@ -1,6 +1,7 @@
 // Pure helpers: no DOM, no storage. Covered by tests/logic.test.js.
 
 const DAY_MS = 24 * 60 * 60 * 1000;
+const BOOK_STATUSES = ["todo", "reading", "done"];
 
 const WEATHER_CODES = {
   0: ["☀️", "Clear"], 1: ["🌤️", "Mostly clear"], 2: ["⛅", "Partly cloudy"], 3: ["☁️", "Overcast"],
@@ -26,10 +27,18 @@ export function aqiLabel(aqi) {
   return band ? band[1] : "Extremely poor";
 }
 
+export function clamp(n, min, max) {
+  return Math.min(Math.max(n, min), max);
+}
+
 export function formatSeconds(total) {
   const m = String(Math.floor(total / 60)).padStart(2, "0");
   const s = String(total % 60).padStart(2, "0");
   return `${m}:${s}`;
+}
+
+export function remainingSeconds(endsAt, now) {
+  return Math.max(0, Math.ceil((endsAt - now) / 1000));
 }
 
 // Local calendar date as "YYYY-MM-DD".
@@ -40,25 +49,12 @@ export function dateKey(date) {
   return `${y}-${m}-${d}`;
 }
 
-function startOfDay(date) {
-  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
-}
-
 function addDays(date, n) {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate() + n);
 }
 
-export function daysUntil(isoDate, today) {
-  const [y, m, d] = isoDate.split("-").map(Number);
-  const target = new Date(y, m - 1, d);
-  return Math.round((target - startOfDay(today)) / DAY_MS);
-}
-
-export function daysLabel(n) {
-  if (n === 0) return "Today";
-  if (n === 1) return "Tomorrow";
-  if (n === -1) return "Yesterday";
-  return n > 1 ? `${n} days` : `${-n} days ago`;
+function dayNumber(date) {
+  return Math.floor(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()) / DAY_MS);
 }
 
 // Oldest → today.
@@ -90,11 +86,18 @@ export function isNightTime(now, start, end) {
 }
 
 export function quoteOfDay(quotes, date) {
-  const dayOfYear = Math.floor(
-    (Date.UTC(date.getFullYear(), date.getMonth(), date.getDate())
-      - Date.UTC(date.getFullYear(), 0, 0)) / DAY_MS,
-  );
-  return quotes[dayOfYear % quotes.length];
+  return quotes[dayNumber(date) % quotes.length];
+}
+
+// Same item for a whole week (weeks start on Thursday, 1970-01-01).
+export function pickOfWeek(items, date) {
+  if (items.length === 0) return null;
+  return items[Math.floor(dayNumber(date) / 7) % items.length];
+}
+
+export function nextStatus(status) {
+  const i = BOOK_STATUSES.indexOf(status);
+  return BOOK_STATUSES[(i + 1) % BOOK_STATUSES.length];
 }
 
 // Next `count` hours after the location's current hour.
@@ -111,4 +114,22 @@ export function hourlyFrom(hourly, currentTime, count) {
       rain: hourly.precipitation_probability[idx] ?? 0,
     };
   });
+}
+
+// Move the border between column `index` and `index + 1` by deltaPct, keeping both ≥ minPct.
+export function resizeColumns(cols, index, deltaPct, minPct) {
+  const pair = cols[index] + cols[index + 1];
+  const left = clamp(cols[index] + deltaPct, minPct, pair - minPct);
+  return cols.map((c, i) => {
+    if (i === index) return left;
+    if (i === index + 1) return pair - left;
+    return c;
+  });
+}
+
+export function isValidLayout(cols, count, minPct) {
+  return Array.isArray(cols)
+    && cols.length === count
+    && cols.every((c) => typeof c === "number" && c >= minPct)
+    && Math.abs(cols.reduce((a, b) => a + b, 0) - 100) < 0.5;
 }

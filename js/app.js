@@ -1,22 +1,27 @@
-import { onSettingsChange } from "./settings.js";
-import { renderClock, renderQuote, renderWorldClocks } from "./clock.js";
+import { getSettings, onSettingsChange } from "./settings.js";
+import { initLayout } from "./layout.js";
+import { renderClock } from "./clock.js";
 import { initWeather, refreshWeather } from "./weather.js";
+import { refreshLocation } from "./location.js";
+import { renderQuote } from "./quote.js";
+import { initBooks } from "./books.js";
 import { initFocus } from "./focus.js";
 import { initTabs } from "./tabs.js";
 import { initTodos } from "./todo.js";
 import { initHabits, refreshHabits } from "./habits.js";
-import { initCountdowns, refreshCountdowns } from "./countdowns.js";
 import { initNotes } from "./notes.js";
 import { initNight, renderNight } from "./night.js";
 import { initSettingsUi } from "./settings-ui.js";
 
 const TICK_MS = 1000;
+const placeOf = (s) => `${s.lat},${s.lon},${s.city}`;
+
 let currentDay = new Date().toDateString();
+let currentPlace = placeOf(getSettings());
 
 function tick() {
   const now = new Date();
   renderClock(now);
-  renderWorldClocks(now);
   renderQuote(now);
   renderNight(now);
 
@@ -24,7 +29,16 @@ function tick() {
   if (day !== currentDay) {
     currentDay = day;
     refreshHabits();
-    refreshCountdowns();
+  }
+}
+
+// Weather only refetches when the place actually changes (not on timer tweaks etc.).
+function onSettings(settings) {
+  tick();
+  const place = placeOf(settings);
+  if (place !== currentPlace) {
+    currentPlace = place;
+    refreshWeather();
   }
 }
 
@@ -38,22 +52,21 @@ async function keepAwake() {
 }
 
 function init() {
+  initLayout();
   initTabs();
   initTodos();
   initHabits();
-  initCountdowns();
   initNotes();
+  initBooks();
   initFocus();
   initNight();
   initSettingsUi();
   initWeather();
+  refreshLocation();
 
   tick();
   setInterval(tick, TICK_MS);
-  onSettingsChange(() => {
-    tick();
-    refreshWeather();
-  });
+  onSettingsChange(onSettings);
 
   document.addEventListener("click", keepAwake, { once: true });
   document.addEventListener("visibilitychange", () => {

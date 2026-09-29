@@ -1,23 +1,27 @@
 import { $ } from "./dom.js";
 import { getSettings, updateSettings } from "./settings.js";
 import { geocode } from "./geo.js";
+import { refreshLocation } from "./location.js";
 import { exportAll, importAll, validateBackup } from "./storage.js";
 
-const WORLD_SLOTS = 3;
 const EXPORT_NAME = "settings.json";
-const slotIds = Array.from({ length: WORLD_SLOTS }, (_, i) => `s-world-${i}`);
 
 const same = (a, b) => a.toLowerCase() === b.toLowerCase();
 
+function syncCityField() {
+  $("s-city").disabled = $("s-use-location").checked;
+}
+
 function fill() {
   const s = getSettings();
+  $("s-use-location").checked = s.useLocation;
   $("s-city").value = s.city;
-  slotIds.forEach((id, i) => { $(id).value = s.worldClocks[i]?.city ?? ""; });
   $("s-h24").checked = s.h24;
   $("s-night-auto").checked = s.night.auto;
   $("s-night-start").value = s.night.start;
   $("s-night-end").value = s.night.end;
   $("s-error").textContent = "";
+  syncCityField();
 }
 
 async function resolveCity(current) {
@@ -27,27 +31,18 @@ async function resolveCity(current) {
   return { city: place.city, lat: place.lat, lon: place.lon };
 }
 
-function resolveWorldClocks(current) {
-  const names = slotIds.map((id) => $(id).value.trim()).filter(Boolean);
-  return Promise.all(names.map(async (name) => {
-    const existing = current.find((c) => same(c.city, name));
-    if (existing) return existing;
-    const place = await geocode(name);
-    return { city: place.city, tz: place.tz };
-  }));
-}
-
 async function onSave(event) {
   event.preventDefault();
   const s = getSettings();
+  const useLocation = $("s-use-location").checked;
   const saveBtn = $("s-save");
   saveBtn.disabled = true;
   $("s-error").textContent = "";
   try {
-    const [place, worldClocks] = await Promise.all([resolveCity(s), resolveWorldClocks(s.worldClocks)]);
+    const place = useLocation ? {} : await resolveCity(s);
     updateSettings({
       ...place,
-      worldClocks,
+      useLocation,
       h24: $("s-h24").checked,
       night: {
         auto: $("s-night-auto").checked,
@@ -56,6 +51,7 @@ async function onSave(event) {
       },
     });
     $("settings").close();
+    refreshLocation();
   } catch (err) {
     $("s-error").textContent = err.message;
   } finally {
@@ -94,6 +90,7 @@ export function initSettingsUi() {
     fill();
     $("settings").showModal();
   });
+  $("s-use-location").addEventListener("change", syncCityField);
   $("s-cancel").addEventListener("click", () => $("settings").close());
   $("settings-form").addEventListener("submit", onSave);
   $("s-export").addEventListener("click", onExport);
